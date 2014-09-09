@@ -2,12 +2,25 @@ sample <- createSplit(1, 5, "")
 sample <- setLeft(0, sample)
 sample <- setRight(1, sample)
 
-tree.grow = function(x, y){
+
+node <- function(left, right, x, y){
+  list(left, right, x, y)
+}
+
+impurity <- function(node){
+ total <- length(node[[4]])
+ p1 <- sum(node[[4]] == 1) / total
+ p2 <- 1 - p1
+ 
+ p1 * p2
+}
+
+tree.grow <- function(x, y){
   
 }
 
 
-tree.classify <- function(x, tr){
+tree.classify <- function(x, tr, nmin=2, minleaf=2){
   if(isLeaf(tr)){
     tr
   }
