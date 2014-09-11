@@ -24,7 +24,7 @@ bestsplit <- function(x, y, minleaf=1){
   bestImp = 1000000000
   bestSplit = 1000000
   
-  low <- (1 + minleaf)
+  low <- minleaf
   high <- length(x) - minleaf + 1
   for(c in low:high){
     val = m[c, 1]
@@ -85,13 +85,16 @@ class <- function(x){
 
 tree.grow <- function(x, nmin=1, minleaf=1){
   nmin <- max(nmin, 2)
-  if(nrow(x) < nmin) class(x)
+  if(nrow(x) < nmin || nrow(x) < 2 * minleaf) class(x)
+  else if(impurity(x[, ncol(x)]) == 0) class(x)
   else{
-#     print("Tree.grow with ")
-#     print(x)
-#     print(nrow(x))
+#      print("Tree.grow with ")
+#      print(x)
+#      print(nrow(x))
     
     s <- bestSplitWhole(x)
+    #print("Best")
+    #print(s)
     imp <- s[[1]]
     value <- s[[2]]
     index <- s[[3]]
@@ -122,9 +125,11 @@ tree.classify <- function(x, tr){
   }else{
     sp <- tr[[2]]
     if(x[sp[[2]]] < sp[[1]]){
+      # Go left
       tree.classify(x, tr[[1]])
     }
     else{
+      # Go right
       tree.classify(x, tr[[3]])
     }
   }
