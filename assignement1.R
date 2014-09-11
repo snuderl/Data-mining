@@ -30,17 +30,17 @@ bestsplit <- function(x, y, minleaf=1){
     val = m[c, 1]
     
     ### We can skip if there is a series of same values.
-    if(c > low && c < high && val == m[c+1, 1]){
+    if(c < high && val == m[c+1, 1]){
       next
     }
     
     midpoint <- (lastVal + val) / 2
     sp <- split(m, 1, midpoint)
     
-    l <- matrix(m[m[,1] < midpoint], ncol=2)
-    r <- matrix(m[m[,1] >= midpoint], ncol=2)
+    l <- matrix(m[m[,1] < midpoint, 2])
+    r <- matrix(m[m[,1] >= midpoint, 2])
     if(nrow(l) > 0 && nrow(r) > 0){
-      imp <- reduction(l[,2], r[,2])
+      imp <- reduction(l, r)
       if(imp <= bestImp){
         bestImp <- imp
         bestSplit <- midpoint
@@ -87,9 +87,9 @@ tree.grow <- function(x, nmin=1, minleaf=1){
   nmin <- max(nmin, 2)
   if(nrow(x) < nmin) class(x)
   else{
-    print("Tree.grow with ")
-    print(x)
-    print(nrow(x))
+#     print("Tree.grow with ")
+#     print(x)
+#     print(nrow(x))
     
     s <- bestSplitWhole(x)
     imp <- s[[1]]
@@ -143,4 +143,5 @@ tr2 <- tree.grow(pima, 20, 5)
 pred <- apply(pima, 1, function(x){ tree.classify(x, tr2)})
 time <- proc.time() - ptm
 
+library('caret')
 c <- confusionMatrix(pred, pima[, ncol(pima)])
