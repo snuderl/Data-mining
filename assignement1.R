@@ -95,9 +95,9 @@ tree.grow <- function(x, nmin=1, minleaf=1){
     s <- bestSplitWhole(x)
     #print("Best")
     #print(s)
-    imp <- s[[1]]
-    value <- s[[2]]
-    index <- s[[3]]
+    imp <- s[1]
+    value <- s[2]
+    index <- s[3]
     
     
     sp = split(x, index, value)
@@ -142,11 +142,17 @@ for(i in 1:10){
   print(tree.classify(credit.dat[i, ], tr))
 }
 
-ptm <- proc.time()
 pima <- read.csv("~/Desktop/pima.txt")
+ptm <- proc.time()
 tr2 <- tree.grow(pima, 20, 5)
 pred <- apply(pima, 1, function(x){ tree.classify(x, tr2)})
 time <- proc.time() - ptm
+
+
+ptm <- proc.time()
+tree.grow_c <- compiler::cmpfun(tree.grow)
+tr2 <- tree.grow_c(pima, 20, 5)
+time2 <- proc.time() - ptm
 
 library('caret')
 c <- confusionMatrix(pred, pima[, ncol(pima)])
