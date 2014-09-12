@@ -16,7 +16,7 @@ reduction <- function(l, r){
   pl * impurity(l) + pr * impurity(r)  
 }
 
-bestsplit <- function(x, y, minleaf=1){
+bestsplit <- function(x, y, minleaf){
   
   bestImp = 1000000000
   bestSplit = 1000000
@@ -46,7 +46,7 @@ bestsplit <- function(x, y, minleaf=1){
   c(bestImp, bestSplit)
 }
 
-bestSplitWhole <- function(x, minleaf=1){
+bestSplitWhole <- function(x, minleaf){
   ### First value is new impurity, next ones are split value and split column
   bestVal <- c(10000000, 0, 0)
   y <- x[, ncol(x)]
@@ -83,7 +83,7 @@ tree.grow <- function(x, nmin=1, minleaf=1){
   if(nrow(x) < nmin || nrow(x) < 2 * minleaf) class(x)
   else if(impurity(getLabels(x)) == 0) class(x)
   else{    
-    s <- bestSplitWhole(x)
+    s <- bestSplitWhole(x, minleaf)
     imp <- s[1]
     value <- s[2]
     index <- s[3]
