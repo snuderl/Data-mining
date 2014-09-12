@@ -17,30 +17,20 @@ reduction <- function(l, r){
 }
 
 bestsplit <- function(x, y, minleaf=1){
-  m <- matrix(c(x, y), ncol=2)
-  m <- m[order(m[, 1]),]
   
-  lastVal = m[1, 1]
   bestImp = 1000000000
   bestSplit = 1000000
   
-  low <- minleaf
-  high <- length(x) - minleaf + 1
-  for(c in low:high){
-    val = m[c, 1]
-    
-    ### We can skip if there is a series of same values.
-    if(c < high && val == m[c+1, 1]){
-      next
-    }
+  lastVal = x[1]
+  for(val in unique(sort(x))){
     
     midpoint <- (lastVal + val) / 2
     
-    inds <- m[,1] < midpoint
-    l <- matrix(m[inds, 2])
-    r <- matrix(m[!inds, 2])
+    inds <- x < midpoint
+    l <- matrix(y[inds])
+    r <- matrix(y[!inds])
     
-    if(nrow(l) > 0 && nrow(r) > 0){
+    if(nrow(l) >= minleaf && nrow(r) >= minleaf){
       imp <- reduction(l, r)
       if(imp <= bestImp){
         bestImp <- imp
@@ -170,7 +160,7 @@ for(i in fix){
 #Permute the rows
 adult <- adult[sample(nrow(adult)), ]
 #Train size
-train = 10000
+train = 20000
 adult.train = adult[1:train, ]
 adult.test = adult[(train + 1):nrow(adult), ]
 ptm <- proc.time()
