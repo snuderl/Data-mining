@@ -35,10 +35,11 @@ bestsplit <- function(x, y, minleaf=1){
     }
     
     midpoint <- (lastVal + val) / 2
-    sp <- split(m, 1, midpoint)
     
-    l <- matrix(m[m[,1] < midpoint, 2])
-    r <- matrix(m[m[,1] >= midpoint, 2])
+    inds <- m[,1] < midpoint
+    l <- matrix(m[inds, 2])
+    r <- matrix(m[!inds, 2])
+    
     if(nrow(l) > 0 && nrow(r) > 0){
       imp <- reduction(l, r)
       if(imp <= bestImp){
@@ -71,8 +72,9 @@ split <- function(x, index, value){
   #print("Split on")
   #print(index)
   #print(value)
-  left <- x[x[, index] < value, ]
-  right <- x[x[, index] >= value, ]
+  inds <- x[, index] < value
+  left <- x[inds, ]
+  right <- x[!inds, ]
   list(left, right)
 }
 
@@ -156,3 +158,24 @@ time2 <- proc.time() - ptm
 
 library('caret')
 c <- confusionMatrix(pred, pima[, ncol(pima)])
+
+
+adult = read.csv("adult.data")
+adult[,15] = as.integer(factor(adult[,15])) - 1
+fix = c(2, 4, 6, 7, 8, 9, 10, 14)
+for(i in fix){
+  adult[,i] = as.integer(factor(adult[,i]))
+}
+
+#Permute the rows
+adult <- adult[sample(nrow(adult)), ]
+#Train size
+train = 10000
+adult.train = adult[1:train, ]
+adult.test = adult[(train + 1):nrow(adult), ]
+ptm <- proc.time()
+tr3 <- tree.grow_c(adult.train, 50, 10)
+time3 <- proc.time() - ptm
+library('caret')
+pred2 <- apply(adult.test, 1, function(x){ tree.classify(x, tr3)})
+c2 <- confusionMatrix(pred2, adult.test[, ncol(adult.test)])
