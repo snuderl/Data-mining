@@ -21,6 +21,8 @@ bestsplit <- function(x, y, minleaf=1){
   bestImp = 1000000000
   bestSplit = 1000000
   
+  
+  
   lastVal = x[1]
   for(val in unique(sort(x))){
     
@@ -59,9 +61,6 @@ bestSplitWhole <- function(x, minleaf=1){
 }
 
 split <- function(x, index, value){
-  #print("Split on")
-  #print(index)
-  #print(value)
   inds <- x[, index] < value
   left <- x[inds, ]
   right <- x[!inds, ]
@@ -70,23 +69,21 @@ split <- function(x, index, value){
 
 
 class <- function(x){
-  y <- x[, length(x)]
+  y <- getLabels(x)
   if(sum(y == 0) > sum(y == 1)) 0
   else 1
+}
+
+getLabels <- function(x){
+  x[, ncol(x)]
 }
 
 tree.grow <- function(x, nmin=1, minleaf=1){
   nmin <- max(nmin, 2)
   if(nrow(x) < nmin || nrow(x) < 2 * minleaf) class(x)
-  else if(impurity(x[, ncol(x)]) == 0) class(x)
-  else{
-#      print("Tree.grow with ")
-#      print(x)
-#      print(nrow(x))
-    
+  else if(impurity(getLabels(x)) == 0) class(x)
+  else{    
     s <- bestSplitWhole(x)
-    #print("Best")
-    #print(s)
     imp <- s[1]
     value <- s[2]
     index <- s[3]
@@ -95,11 +92,6 @@ tree.grow <- function(x, nmin=1, minleaf=1){
     sp = split(x, index, value)
     left = sp[[1]]
     right = sp[[2]]
-    
-    #     print("Left are")
-    #     print(nrow(left))
-    #     print("Right:")
-    #     print(nrow(right))
     
     if(nrow(left) == 0 || nrow(right) == 0){
       class(x)
@@ -111,21 +103,25 @@ tree.grow <- function(x, nmin=1, minleaf=1){
   }
 }
 
-tree.classify <- function(x, tr){
-  if(length(tr) == 1){
-    tr
-  }else{
-    sp <- tr[[2]]
-    if(x[sp[[2]]] < sp[[1]]){
-      # Go left
-      tree.classify(x, tr[[1]])
-    }
-    else{
-      # Go right
-      tree.classify(x, tr[[3]])
-    }
+tree.classify <- function(data, tree){
+  classify <- function(x, tr){
+    if(length(tr) == 1){
+      tr
+    }else{
+      sp <- tr[[2]]
+      if(x[sp[[2]]] < sp[[1]]){
+        # Go left
+        classify(x, tr[[1]])
+      }
+      else{
+        # Go right
+        classify(x, tr[[3]])
+      }
+    } 
   }
+  apply(data, 1, function(x) { classify(x, tree)})
 }
+
 
 
 credit.dat <- read.csv("~/Desktop/credit.txt")
@@ -137,7 +133,7 @@ for(i in 1:10){
 pima <- read.csv("~/Desktop/pima.txt")
 ptm <- proc.time()
 tr2 <- tree.grow(pima, 20, 5)
-pred <- apply(pima, 1, function(x){ tree.classify(x, tr2)})
+pred <- tree.classify(pima, tr2)
 time <- proc.time() - ptm
 
 
@@ -160,12 +156,12 @@ for(i in fix){
 #Permute the rows
 adult <- adult[sample(nrow(adult)), ]
 #Train size
-train = 20000
+train = 10000
 adult.train = adult[1:train, ]
 adult.test = adult[(train + 1):nrow(adult), ]
 ptm <- proc.time()
-tr3 <- tree.grow_c(adult.train, 50, 10)
+tr3 <- tree.grow_c(adult.train, 40, 10)
 time3 <- proc.time() - ptm
 library('caret')
-pred2 <- apply(adult.test, 1, function(x){ tree.classify(x, tr3)})
+pred2 <- tree.classify(adult.test, tr3)
 c2 <- confusionMatrix(pred2, adult.test[, ncol(adult.test)])
