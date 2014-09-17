@@ -1,4 +1,6 @@
-pima <- read.csv("~/Desktop/pima.txt")
+source('classification_tree.R')
+
+pima <- read.csv("data/pima.txt")
 ptm <- proc.time()
 tr2 <- tree.grow(pima, 20, 5)
 pred <- tree.classify(pima, tr2)

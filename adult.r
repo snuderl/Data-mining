@@ -1,21 +1,18 @@
 library('caret')
+source('classification_tree.R')
+source("util.r")
 
 
-adult = read.csv("adult.data")
-adult[,15] = as.integer(factor(adult[,15])) - 1
-fix = c(2, 4, 6, 7, 8, 9, 10, 14)
-for(i in fix){
-  adult[,i] = as.integer(factor(adult[,i]))
-}
+adult = read.csv("data/adult.data")
+fix = c(2, 4, 6, 7, 8, 9, 10, 14, 15)
+adult <- category.to_integer(fix, adult)
 
 #Permute the rows
-adult <- adult[sample(nrow(adult)), ]
-#Train size
-train = 15000
-adult.train = adult[1:train, ]
-adult.test = adult[(train + 1):nrow(adult), ]
+data <- split_data(0.3, adult)
+adult.train <- data[[1]]
+adult.test <- data[[2]]
 ptm <- proc.time()
-tr3 <- tree.grow_c(adult.train, 100, 20)
+tr3 <- tree.grow(adult.train, 300, 60)
 time3 <- proc.time() - ptm
 print(time3)
 library('caret')
