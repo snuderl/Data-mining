@@ -24,19 +24,26 @@ bestsplit <- function(x, y, minleaf){
   
   
   lastVal = x[1]
+  lastMid <- 0
   lastLabel <- -1
-  for(val in unique(sort(x))){
+  
+  unq = unique(sort(x))
+  end = unq[length(unq)]
+  
+  firstValFound = FALSE
+  
+  
+  for(val in unq){
     
     ## We can skip if label didn't change
     label = unique(y[x == val])
-    if(length(label) == 1){
+    if(val != end && length(label) == 1){
       label = label[1]
-      if(label == lastLabel) next
+      if(!firstValFound && label == lastLabel) next
     }
     else{
       label = -1
-    }
-    
+    }    
     
     midpoint <- (lastVal + val) / 2
     
@@ -44,6 +51,7 @@ bestsplit <- function(x, y, minleaf){
     l <- matrix(y[inds])
     
     if(nrow(l) >= minleaf && (rows - nrow(l)) >= minleaf){
+      firstValFound <- TRUE
       r <- matrix(y[!inds])
       imp <- reduction(l, r)
       if(imp <= bestImp){
@@ -51,9 +59,27 @@ bestsplit <- function(x, y, minleaf){
         bestSplit <- midpoint
       }
     }
+    else if(firstValFound){
+      ### If first val was already found, then we are closing on the end from another side
+      ### Value before this one was the last possible value, and we must calculate its solution
+      midpoint <- (lastVal + val) / 2
+      inds <- x < midpoint
+      l <- matrix(y[inds])
+      r <- matrix(y[!inds])
+      imp <- reduction(l, r)
+      if(imp <= bestImp){
+        bestImp <- imp
+        bestSplit <- midpoint
+      }
+      
+      ### We can also safely break,
+      ### as we know there cannot be another solutions containing enough values in both leafs.
+      break
+    }
     
     lastVal <- val
     lastLabel <- label
+    lastMid <- midpoint
   }
   
   c(bestImp, bestSplit)
@@ -134,8 +160,6 @@ tree.classify <- function(data, tree){
   }
   apply(data, 1, function(x) { classify(x, tree)})
 }
-
-
 
 
 
