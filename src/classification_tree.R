@@ -15,6 +15,47 @@ reduction <- function(l, r){
   pl * impurity(l) + pr * impurity(r)  
 }
 
+bestsplit.category <- function(x, y, minleaf){
+  bestImp = 1000000000
+  bestSplit = c(0)
+  rows = length(x)
+  
+  f = factor(x)
+  fb = table(f)
+  indices = order(fb)
+  name = names(fb)
+  
+  selector = 1:length(indices)
+  selector[1:length(indices)] = FALSE
+  
+  firstValVound = FALSE
+  
+  for(i in 1:length(indices)){
+    selector[i] = indices[i]
+    
+    inds <- x %in% names(fb[selector[1:i]])
+    print(names(fb[selector[1:i]]))
+    
+    l <- matrix(y[inds])
+    r <- matrix(y[!inds])
+    
+    
+    if(nrow(l) >= minleaf && (rows - nrow(l)) >= minleaf){
+      firstValFound <- TRUE
+      r <- matrix(y[!inds])
+      imp <- reduction(l, r)
+      print(imp)
+      if(imp <= bestImp){
+        bestImp <- imp
+        bestSplit <- n[selector]
+      }
+    }
+    else if(firstValFound) break
+    
+  }
+  list(bestImp, bestSplit)
+}
+
 bestsplit <- function(x, y, minleaf){
   
   bestImp = 1000000000
