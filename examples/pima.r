@@ -1,4 +1,4 @@
-source('classification_tree.R')
+source('srd/classification_tree.R')
 
 pima <- read.csv("data/pima.txt")
 ptm <- proc.time()

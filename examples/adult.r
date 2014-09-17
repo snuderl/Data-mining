@@ -1,6 +1,6 @@
 library('caret')
-source('classification_tree.R')
-source("util.r")
+source('src/classification_tree.R')
+source("src/util.r")
 
 
 adult = read.csv("data/adult.data")

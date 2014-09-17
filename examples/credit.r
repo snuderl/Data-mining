@@ -1,4 +1,4 @@
-source('classification_tree.R')
+source('src/classification_tree.R')
 
 source('classification_tree.R')
 credit.dat <- read.csv("data/credit.txt")
