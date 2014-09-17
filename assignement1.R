@@ -21,18 +21,31 @@ bestsplit <- function(x, y, minleaf){
   bestImp = 1000000000
   bestSplit = 1000000
   
+  rows = length(y)
   
   
   lastVal = x[1]
+  lastLabel <- -1
   for(val in unique(sort(x))){
+    
+    ## We can skip if label didn't change
+    label = unique(y[x == val])
+    if(length(label) == 1){
+      label = label[1]
+      if(label == lastLabel) next
+    }
+    else{
+      label = -1
+    }
+    
     
     midpoint <- (lastVal + val) / 2
     
     inds <- x < midpoint
     l <- matrix(y[inds])
-    r <- matrix(y[!inds])
     
-    if(nrow(l) >= minleaf && nrow(r) >= minleaf){
+    if(nrow(l) >= minleaf && (rows - nrow(l)) >= minleaf){
+      r <- matrix(y[!inds])
       imp <- reduction(l, r)
       if(imp <= bestImp){
         bestImp <- imp
@@ -41,6 +54,7 @@ bestsplit <- function(x, y, minleaf){
     }
     
     lastVal <- val
+    lastLabel <- label
   }
   
   c(bestImp, bestSplit)
@@ -124,44 +138,5 @@ tree.classify <- function(data, tree){
 
 
 
-credit.dat <- read.csv("~/Desktop/credit.txt")
-tr <- tree.grow(credit.dat, 2, 1)
-for(i in 1:10){
-  print(tree.classify(credit.dat[i, ], tr))
-}
-
-pima <- read.csv("~/Desktop/pima.txt")
-ptm <- proc.time()
-tr2 <- tree.grow(pima, 20, 5)
-pred <- tree.classify(pima, tr2)
-time <- proc.time() - ptm
 
 
-ptm <- proc.time()
-tree.grow_c <- compiler::cmpfun(tree.grow)
-tr2 <- tree.grow_c(pima, 20, 5)
-time2 <- proc.time() - ptm
-
-library('caret')
-c <- confusionMatrix(pred, pima[, ncol(pima)])
-
-
-adult = read.csv("adult.data")
-adult[,15] = as.integer(factor(adult[,15])) - 1
-fix = c(2, 4, 6, 7, 8, 9, 10, 14)
-for(i in fix){
-  adult[,i] = as.integer(factor(adult[,i]))
-}
-
-#Permute the rows
-adult <- adult[sample(nrow(adult)), ]
-#Train size
-train = 10000
-adult.train = adult[1:train, ]
-adult.test = adult[(train + 1):nrow(adult), ]
-ptm <- proc.time()
-tr3 <- tree.grow_c(adult.train, 40, 10)
-time3 <- proc.time() - ptm
-library('caret')
-pred2 <- tree.classify(adult.test, tr3)
-c2 <- confusionMatrix(pred2, adult.test[, ncol(adult.test)])
