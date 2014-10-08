@@ -1,4 +1,5 @@
 source('src/classification_tree.R')
+source('src/util.r')
 
 pima <- read.csv("data/pima.txt")
 ptm <- proc.time()
@@ -8,10 +9,15 @@ time <- proc.time() - ptm
 
 
 ptm <- proc.time()
-tree.grow_c <- compiler::cmpfun(tree.grow)
-tr2 <- tree.grow_c(pima, 20, 5)
+tr2 <- tree.grow(pima, 20, 5)
 time2 <- proc.time() - ptm
 
 c <- confusionMatrix(pred, pima[, ncol(pima)])
 print(c)
 print(time2)
+
+data <- split_data(0.7, pima)
+candidatesNMin = c(10, 15, 20, 25, 30, 50, 70, 100, 150, 170)
+canditatesMinLeaf = c(3, 5, 7, 9, 10, 15, 20, 25, 40, 60, 80, 100)
+a = calculateGrid(data[[1]], data[[2]], candidatesNMin, canditatesMinLeaf)
+levelplot(a, col.regions=cm.colors)

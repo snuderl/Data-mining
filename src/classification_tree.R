@@ -1,33 +1,78 @@
+tree.grow <- function(x, nmin=1, minleaf=1){
+  nmin <- max(nmin, 2)
+  if(nrow(x) < nmin || nrow(x) < 2 * minleaf) class(x)
+  else if(impurity(getLabels(x)) == 0) class(x)
+  else{    
+    s <- bestSplitWhole(x, minleaf)
+    imp <- s[1]
+    value <- s[2]
+    index <- s[3]
+    
+    
+    sp = split(x, index, value)
+    left = sp[[1]]
+    right = sp[[2]]
+    
+    if(nrow(left) == 0 || nrow(right) == 0){
+      class(x)
+    } else if(imp == 0){
+      list(class(left), list(value, index), class(right))
+    } else{
+      list(tree.grow(left, nmin, minleaf), list(value, index), tree.grow(right, nmin, minleaf))  
+    }
+  }
+}
+
+tree.classify <- function(data, tree){
+  classify <- function(x, tr){
+    if(length(tr) == 1){
+      tr
+    }else{
+      sp <- tr[[2]]
+      if(x[sp[[2]]] < sp[[1]]){
+        # Go left
+        classify(x, tr[[1]])
+      }
+      else{
+        # Go right
+        classify(x, tr[[3]])
+      }
+    } 
+  }
+  apply(data, 1, function(x) { classify(x, tree)})
+}
+
+
 
 impurity <- function(labels){
-  n <- length(labels)
-  n1 <- sum(labels == 0)
-  p1 <- n1 / n
-  
+  p1 <- sum(labels == 0) / length(labels)
   p1 * (1 - p1)
 }
 
 reduction <- function(l, r){
   total <- length(l) + length(r)
   pl <- length(l)/ total
-  pr <- 1 - pl
-  
-  pl * impurity(l) + pr * impurity(r)  
+  pl * impurity(l) + (1 - pl) * impurity(r)  
 }
 
+### Calculates best split on a categorical value
 bestsplit.category <- function(x, y, minleaf){
   bestImp = 1000000000
   bestSplit = c(0)
   rows = length(x)
   
+  
+  ### We extract category names for the given column and sort on them
   f = factor(x)
   fb = table(f)
   indices = order(fb)
   name = names(fb)
   
+  ### Initialize array to false
   selector = 1:length(indices)
   selector[1:length(indices)] = FALSE
   
+
   firstValVound = FALSE
   
   for(i in 1:length(indices)){
@@ -60,14 +105,14 @@ bestsplit <- function(x, y, minleaf){
   
   bestImp = 1000000000
   bestSplit = 1000000
-  
   rows = length(y)
   
-  
+  ### Keep track of last iteration
   lastVal = x[1]
   lastMid <- 0
   lastLabel <- -1
   
+  ### Unique values in sorted order, and last value(so we know we are at the end)
   unq = unique(sort(x))
   end = unq[length(unq)]
   
@@ -78,6 +123,8 @@ bestsplit <- function(x, y, minleaf){
     
     ## We can skip if label didn't change
     label = unique(y[x == val])
+    ## Label is the list of all clases that have a instance with value x. If it is 1, we store it
+    ## and possibly skip an iteration.
     if(val != end && length(label) == 1){
       label = label[1]
       if(!firstValFound && label == lastLabel) next
@@ -87,7 +134,6 @@ bestsplit <- function(x, y, minleaf){
     }    
     
     midpoint <- (lastVal + val) / 2
-    
     inds <- x < midpoint
     l <- matrix(y[inds])
     
@@ -158,49 +204,6 @@ getLabels <- function(x){
   x[, ncol(x)]
 }
 
-tree.grow <- function(x, nmin=1, minleaf=1){
-  nmin <- max(nmin, 2)
-  if(nrow(x) < nmin || nrow(x) < 2 * minleaf) class(x)
-  else if(impurity(getLabels(x)) == 0) class(x)
-  else{    
-    s <- bestSplitWhole(x, minleaf)
-    imp <- s[1]
-    value <- s[2]
-    index <- s[3]
-    
-    
-    sp = split(x, index, value)
-    left = sp[[1]]
-    right = sp[[2]]
-    
-    if(nrow(left) == 0 || nrow(right) == 0){
-      class(x)
-    } else if(imp == 0){
-      list(class(left), list(value, index), class(right))
-    } else{
-      list(tree.grow(left, nmin, minleaf), list(value, index), tree.grow(right, nmin, minleaf))  
-    }
-  }
-}
-
-tree.classify <- function(data, tree){
-  classify <- function(x, tr){
-    if(length(tr) == 1){
-      tr
-    }else{
-      sp <- tr[[2]]
-      if(x[sp[[2]]] < sp[[1]]){
-        # Go left
-        classify(x, tr[[1]])
-      }
-      else{
-        # Go right
-        classify(x, tr[[3]])
-      }
-    } 
-  }
-  apply(data, 1, function(x) { classify(x, tree)})
-}
 
 
 
