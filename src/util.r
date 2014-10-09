@@ -2,7 +2,7 @@ split_data <- function(p, x){
   total = nrow(x)
   x <- x[sample(total), ]
   train = round(total * p)
-  list(x[1:train, ], x[(train + 1):total, ])
+  list(train=x[1:train, ], test=x[(train + 1):total, ])
 }
 
 category.to_integer <- function(cols, data){
@@ -16,15 +16,10 @@ calculateGrid <- function(train, test, dim1, dim2){
   results = c()
   for(x in dim1){
     for(y in dim2){
-      if(2.5 * y < x){
-        tree <- tree.grow(train, x, y)
+        tree <- tree.grow1(train, x, y)
         pred <- tree.classify(test, tree)
         c2 <- confusionMatrix(pred, test[, ncol(test)])
         results = c(results, c2[[3]][[1]])
-      }
-      else{
-        results = c(results, 0)
-      }
     }
   }
   
