@@ -1,5 +1,6 @@
 source('src/classification_tree.R')
 source('src/util.r')
+library('caret')
 
 pima <- read.csv("data/pima.txt")
 ptm <- proc.time()

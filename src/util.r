@@ -13,6 +13,7 @@ category.to_integer <- function(cols, data){
 }
 
 calculateGrid <- function(train, test, dim1, dim2){
+  library('caret')
   results = c()
   for(x in dim1){
     for(y in dim2){

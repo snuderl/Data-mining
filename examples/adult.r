@@ -1,21 +1,14 @@
-library('caret')
 source('src/classification_tree.R')
 source("src/util.r")
-library('caret')
-library('rpart')
 
 
 adult = read.csv("data/adult.data")
 fix = c(2, 4, 6, 7, 8, 9, 10, 14, 15)
 adult <- category.to_integer(fix, adult)
 
-data <- split_data(0.5, adult)
+data <- split_data(0.7, adult)
 adult.train <- data[[1]]
 adult.test <- data[[2]]
-tree.grow_c <- compiler::cmpfun(tree.grow1)
-ptm <- proc.time()
-time3 <- proc.time() - ptm
-print(time3)
 
 #compares diferent parameters of nmin and minleaf
 candidatesNMin = c(30, 40, 50, 70, 100, 200, 300, 400, 600, 800, 1000)
@@ -24,6 +17,8 @@ a = calculateGrid(adult.train, adult.test, candidatesNMin, canditatesMinLeaf)
 levelplot(a, col.regions=cm.colors, xlab="NDim", ylab="MinLeaf")
 
 #comapres our function to the rpart
+library('caret')
+library('rpart')
 results = c()
 nmins = c(50, 70, 80, 100, 130, 160, 200,230, 260, 300,350, 400, 600, 800, 1000)
 for(x in nmins){
